@@ -71,18 +71,18 @@ class AdminCRUD:
             ]
 
     @staticmethod
-    def obtener_detalle_empleado(id_empleado: int):
+    def obtener_detalle_empleado(numero_identificacion: str):
         """Obtiene todos los datos de un empleado"""
         with db.conn.cursor() as cur:
             cur.execute(
                 """
                 SELECT id_empleado, nombre, apellido, tipo_identificacion, numero_identificacion,
                        fecha_nacimiento, correo_electronico, telefono, calle,
-                       numero_calle, localidad, partido, genero, nacionalidad, estado_civil
+                       numero_calle, localidad, partido, genero, pais_nacimiento, estado_civil
                 FROM empleado
-                WHERE id_empleado = %s
+                WHERE numero_identificacion = %s
                 """,
-                (id_empleado,)
+                (numero_identificacion,)
             )
             result = cur.fetchone()
             if result:

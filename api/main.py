@@ -72,9 +72,9 @@ def crear_empleado(empleado: Empleado):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@app.get("/empleados/{id}")
-def obtener_empleado(id: str):
-    empleado = AdminCRUD.buscar_empleado_por_numero_identificacion(id)
+@app.get("/empleados/{numero_identificacion}")
+def obtener_empleado(numero_identificacion: str):
+    empleado = AdminCRUD.obtener_detalle_empleado(numero_identificacion)
     if not empleado:
         raise HTTPException(status_code=404, detail="Empleado no encontrado")
     return empleado
