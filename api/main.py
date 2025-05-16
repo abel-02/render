@@ -62,18 +62,18 @@ def crear_empleado(nombre: str,apellido: str, tipo_identificacion: str, numero_i
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@app.get("/empleados/{dni}")
-def obtener_empleado(dni: str):
-    empleado = AdminCRUD.obtener_por_dni(dni)
+@app.get("/empleados/{id}")
+def obtener_empleado(id: str):
+    empleado = AdminCRUD.buscar_empleado_por_numero_identificacion(id)
     if not empleado:
         raise HTTPException(status_code=404, detail="Empleado no encontrado")
-    return empleado.__dict__
+    return empleado
 
 @app.post("/registros/")
 def registrar_horario(empleado_id: str, tipo: str):
     try:
         registro = RegistroHorario.registrar(empleado_id, tipo)
-        return registro.__dict__
+        return registro
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -87,7 +87,7 @@ def obtener_registros(
         registros = RegistroHorario.obtener_registros_mensuales(empleado_id, año, mes)
     else:
         registros = RegistroHorario.obtener_todos(empleado_id)
-    return [r.__dict__ for r in registros]
+    return [r for r in registros]
 
 @app.get("/horas/{empleado_id}")
 def calcular_horas(empleado_id: str, año: int, mes: int):
