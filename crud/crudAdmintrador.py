@@ -6,9 +6,7 @@ from .database import db
 
 class AdminCRUD:
     @staticmethod
-    def crear_empleado(numero_identificacion: str, nombre: str, apellido: str, tipo_identificacion: str,
-                      fecha_nacimiento: date, correo_electronico: str, telefono: str, calle: str,
-                      numero_calle: str, localidad: str, partido: str, genero: str, nacionalidad: str, estado_civil: str):
+    def crear_empleado(nuevoEmpleado):
         """Registra un nuevo empleado con todos los campos"""
         try:
             with db.conn.cursor() as cur:
@@ -17,15 +15,19 @@ class AdminCRUD:
                     INSERT INTO empleado (
                         nombre, apellido, tipo_identificacion, numero_identificacion,
                         fecha_nacimiento, correo_electronico, telefono, calle,
-                        numero_calle, localidad, partido, genero, nacionalidad, estado_civil
+                        numero_calle, localidad, partido, provincia, genero, nacionalidad, estado_civil
                     )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     RETURNING id_empleado, numero_identificacion, nombre, apellido
                     """,
                     (
-                        nombre, apellido, tipo_identificacion, numero_identificacion,
-                        fecha_nacimiento, correo_electronico, telefono, calle,
-                        numero_calle, localidad, partido, genero, nacionalidad, estado_civil
+                        nuevoEmpleado.nombre, nuevoEmpleado.apellido, nuevoEmpleado.tipo_identificacion,
+                        nuevoEmpleado.numero_identificacion,
+                        nuevoEmpleado.fecha_nacimiento, nuevoEmpleado.correo_electronico, nuevoEmpleado.telefono,
+                        nuevoEmpleado.calle,
+                        nuevoEmpleado.numero_calle, nuevoEmpleado.localidad, nuevoEmpleado.partido,
+                        nuevoEmpleado.provincia,  # Aquí agregamos provincia
+                        nuevoEmpleado.genero, nuevoEmpleado.nacionalidad, nuevoEmpleado.estado_civil
                     )
                 )
                 empleado = cur.fetchone()

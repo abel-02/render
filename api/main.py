@@ -10,6 +10,22 @@ from crud.crudEmpleado import Empleado
 from pydantic import BaseModel
 from typing import List
 
+class Empleado(BaseModel):
+    nombre: str
+    apellido: str
+    tipo_identificacion: str
+    numero_identificacion: str
+    fecha_nacimiento: str
+    correo_electronico: str
+    telefono: str
+    calle: str
+    numero_calle: int
+    localidad: str
+    partido: str
+    provincia: str
+    genero: str
+    nacionalidad: str
+    estado_civil: str
 
 
 
@@ -33,15 +49,9 @@ class AsistenciaManual(BaseModel):
 app = FastAPI()
 
 @app.post("/empleados/")
-def crear_empleado(nombre: str,apellido: str, tipo_identificacion: str, numero_identificacion: str,
-                        fecha_nacimiento: str,correo_electronico: str, telefono: str,
-                        calle: str, numero_calle,localidad: str,partido: str,
-                        provincia: str,genero,nacionalidad: str,estado_civil: str):
+def crear_empleado(empleado: Empleado):
     try:
-        empleado = Empleado.crear(nombre,apellido,tipo_identificacion, numero_identificacion,
-                        fecha_nacimiento,correo_electronico, telefono,
-                        calle, numero_calle,localidad,partido,
-                        provincia,genero,nacionalidad,estado_civil)
+        empleado = AdminCRUD.crear_empleado(empleado)
         return {
             "nombre": empleado.nombre,
             "apellido": empleado.apellido,
@@ -112,7 +122,7 @@ def actualizar_datos_empleado(
             partido=datos.partido,  # Nueva variable agregada
             provincia=datos.provincia
         )
-        return empleado_actualizado.__dict__
+        return empleado_actualizado
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -131,7 +141,7 @@ def registrar_asistencia_manual(
             hora=registro.hora,
             estado_asistencia=registro.estado_asistencia
         )
-        return nuevo_registro.__dict__
+        return nuevo_registro
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except PermissionError as e:
@@ -158,4 +168,4 @@ def buscar_empleados(
         apellido=apellido,
         dni=dni
     )
-    return [e.__dict__ for e in empleados]
+    return [e for e in empleados]
