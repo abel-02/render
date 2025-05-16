@@ -1,14 +1,15 @@
 from fastapi import FastAPI, HTTPException, Depends
-
-
 from crud import crudEmpleado, crudAdmintrador
 import uuid
 from typing import Optional
 from datetime import datetime, timedelta, date, time
+
+from crud.crudAdmintrador import AdminCRUD
 from crud.crudEmpleado import RegistroHorario
 from crud.crudEmpleado import Empleado
 from pydantic import BaseModel
 from typing import List
+
 
 
 
@@ -63,7 +64,7 @@ def crear_empleado(nombre: str,apellido: str, tipo_identificacion: str, numero_i
 
 @app.get("/empleados/{dni}")
 def obtener_empleado(dni: str):
-    empleado = Empleado.obtener_por_dni(dni)
+    empleado = AdminCRUD.obtener_por_dni(dni)
     if not empleado:
         raise HTTPException(status_code=404, detail="Empleado no encontrado")
     return empleado.__dict__
@@ -137,11 +138,11 @@ def registrar_asistencia_manual(
         raise HTTPException(status_code=403, detail=str(e))
 
 # Obtener todos los empleados (para listados)
-@app.get("/empleados/", response_model=List[dict])
-def listar_empleados(pagina: int = 1, limite: int = 10):
+@app.get("/empleados/")
+def listar_empleados():
     try:
-        empleados = Empleado.obtener_todos(pagina=pagina, limite=limite)
-        return [e.__dict__ for e in empleados]
+        empleados = AdminCRUD.obtener_empleados()
+        return [e for e in empleados]
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
