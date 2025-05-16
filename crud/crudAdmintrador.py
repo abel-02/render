@@ -15,7 +15,7 @@ class AdminCRUD:
                     INSERT INTO empleado (
                         nombre, apellido, tipo_identificacion, numero_identificacion,
                         fecha_nacimiento, correo_electronico, telefono, calle,
-                        numero_calle, localidad, partido, provincia, genero, nacionalidad, estado_civil
+                        numero_calle, localidad, partido, provincia, genero, pais_nacimiento, estado_civil
                     )
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     RETURNING id_empleado, numero_identificacion, nombre, apellido
@@ -27,7 +27,7 @@ class AdminCRUD:
                         nuevoEmpleado.calle,
                         nuevoEmpleado.numero_calle, nuevoEmpleado.localidad, nuevoEmpleado.partido,
                         nuevoEmpleado.provincia,  # Aquí agregamos provincia
-                        nuevoEmpleado.genero, nuevoEmpleado.nacionalidad, nuevoEmpleado.estado_civil
+                        nuevoEmpleado.genero, nuevoEmpleado.pais_nacimiento, nuevoEmpleado.estado_civil
                     )
                 )
                 empleado = cur.fetchone()

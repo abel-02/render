@@ -24,7 +24,7 @@ class Empleado(BaseModel):
     partido: str
     provincia: str
     genero: str
-    nacionalidad: str
+    pais_nacimiento: str
     estado_civil: str
 
 
@@ -66,7 +66,7 @@ def crear_empleado(empleado: Empleado):
             "partido": empleado.partido,
             "provincia": empleado.provincia,
             "genero": empleado.genero,
-            "nacionalidad": empleado.nacionalidad,
+            "pais_nacimiento": empleado.pais_nacimiento,
             "estado_civil": empleado.estado_civil
         }
     except ValueError as e:
