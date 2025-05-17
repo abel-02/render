@@ -470,24 +470,24 @@ class RegistroHorario:
                 f"el {self.fecha} a las {self.hora} ({self.estado_asistencia})>")
 
     @staticmethod
-    def obtener_registros_mensuales(empleado_id, año, mes):
-        """Obtiene registros de jornada por mes"""
+    def calcular_horas_mensuales(empleado_id, año, mes):
+        """Calcula la suma total de horas trabajadas en un mes"""
         inicio = datetime(año, mes, 1).date()
         fin = (inicio + timedelta(days=31)).replace(day=1)
 
         with db.conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT id_registro_jornada, id_empleado, dia, hora_entrada, hora_salida, estado_jornada, horas_trabajadas, observaciones
-                FROM registro_jornada
+                SELECT SUM(horas_trabajadas) 
+                FROM registro_jornada 
                 WHERE id_empleado = %s 
-                AND fecha >= %s 
-                AND fecha < %s
-                ORDER BY fecha
+                AND dia >= %s 
+                AND dia < %s
                 """,
                 (empleado_id, inicio, fin)
             )
-            return cur.fetchall()  # o procesar con alguna clase si tenés una como RegistroJornada
+            resultado = cur.fetchone()
+            return resultado[0] if resultado[0] else 0.0  # Si no hay registros, devuelve 0.0
 
     @staticmethod
     def obtener_todos_los_registros(empleado_id):
@@ -495,7 +495,7 @@ class RegistroHorario:
         with db.conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT id_registro_jornada, id_empleado, dia, hora_entrada, hora_salida, estado_jornada, horas_trabajadas, observaciones
+                SELECT id_registro_jornada, id_empleado, fecha,  dia, hora_entrada, hora_salida, estado_jornada, horas_trabajadas, observaciones
                 FROM registro_jornada
                 WHERE id_empleado = %s
                 ORDER BY fecha
@@ -506,19 +506,23 @@ class RegistroHorario:
 
     @staticmethod
     def calcular_horas_mensuales(empleado_id, año, mes):
-        """Calcula horas trabajadas en un mes"""
-        registros = RegistroHorario.obtener_registros_mensuales(empleado_id, año, mes)
-        horas = 0.0
-        entrada = None
+        """Calcula la suma total de horas trabajadas en un mes"""
+        inicio = datetime(año, mes, 1).date()
+        fin = (inicio + timedelta(days=31)).replace(day=1)
 
-        for reg in registros:
-            if reg.tipo == 'entrada':
-                entrada = reg.fecha_hora
-            elif entrada and reg.tipo == 'salida':
-                horas += (reg.fecha_hora - entrada).total_seconds() / 3600
-                entrada = None
-
-        return round(horas, 2)
+        with db.conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT SUM(horas_trabajadas)
+                FROM registro_jornada
+                WHERE id_empleado = %s
+                AND fecha >= %s
+                AND fecha < %s
+                """,
+                (empleado_id, inicio, fin)
+            )
+            resultado = cur.fetchone()
+            return resultado[0] if resultado[0] else 0.0  # Si no hay registros, devuelve 0.0
 
     @staticmethod
     def actualizar_datos_personales(id_empleado: int, telefono: str = None,
