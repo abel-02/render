@@ -1,3 +1,6 @@
+import cv2
+import face_recognition
+import numpy as np
 from fastapi import FastAPI, HTTPException, Depends
 from crud import crudEmpleado, crudAdmintrador
 import uuid
@@ -9,6 +12,24 @@ from crud.crudEmpleado import RegistroHorario
 from crud.crudEmpleado import Empleado
 from pydantic import BaseModel
 from typing import List
+
+
+# Dato biometrico, lo voy a usar para probar el endpoint regitrar horario
+# Funcion que tengo en la versión 3 del reco (otro repo)
+def extraer_vector(imagen_bytes: bytes):
+    np_arr = np.frombuffer(imagen_bytes, np.uint8)
+    imagen_np = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+    vectores = face_recognition.face_encodings(imagen_np)
+    if vectores:
+        return vectores[0]
+    return None
+
+def obtenerDatoBiometrico():
+    with open("../personas/personaAutorizada1.jpg", "rb") as imagen:
+        contenido = imagen.read()
+        vector_neutro = extraer_vector(contenido)
+    return vector_neutro
+
 
 class Empleado(BaseModel):
     nombre: str
@@ -26,9 +47,6 @@ class Empleado(BaseModel):
     genero: str
     pais_nacimiento: str
     estado_civil: str
-
-
-
 
 class EmpleadoUpdate(BaseModel):
     telefono: Optional[str] = None
@@ -86,6 +104,7 @@ def registrar_horario(empleado_id: str, tipo: str):
         return registro
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
 
 @app.get("/registros/{empleado_id}")
 def obtener_registros(
