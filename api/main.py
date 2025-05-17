@@ -1,3 +1,5 @@
+import os
+
 import cv2
 import face_recognition
 import numpy as np
@@ -25,7 +27,9 @@ def extraer_vector(imagen_bytes: bytes):
     return None
 
 def obtenerDatoBiometrico():
-    with open("../personas/personaAutorizada1.jpg", "rb") as imagen:
+    ruta_base = os.path.dirname(os.path.abspath(__file__))
+    ruta_imagen = os.path.join(ruta_base, "../personas/personaAutorizada1.jpg")
+    with open(ruta_imagen, "rb") as imagen:
         contenido = imagen.read()
         vector_neutro = extraer_vector(contenido)
     return vector_neutro
@@ -97,10 +101,11 @@ def obtener_empleado(numero_identificacion: str):
         raise HTTPException(status_code=404, detail="Empleado no encontrado")
     return empleado
 
+# No puedo probarlo porque no hay registros laborales
 @app.post("/registros/")
-def registrar_horario(empleado_id: str, tipo: str):
+def registrar_horario(empleado_id: str, vectorBiometrico: str):
     try:
-        registro = RegistroHorario.registrar(empleado_id, tipo)
+        registro = RegistroHorario.registrar_asistencia(empleado_id, obtenerDatoBiometrico()) #Voy a probar con un vector predeterminado
         return registro
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
