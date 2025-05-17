@@ -102,6 +102,7 @@ def obtener_empleado(numero_identificacion: str):
     return empleado
 
 # No puedo probarlo porque no hay registros laborales
+
 @app.post("/registros/")
 def registrar_horario(empleado_id: str, vectorBiometrico: str):
     try:

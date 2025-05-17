@@ -468,25 +468,26 @@ class RegistroHorario:
     def __repr__(self):
         return (f"<RegistroHorario {self.id_asistencia_biometrica}: {self.tipo} "
                 f"el {self.fecha} a las {self.hora} ({self.estado_asistencia})>")
+
     @staticmethod
     def obtener_registros_mensuales(empleado_id, año, mes):
-        """Obtiene registros de horario por mes"""
-        inicio = datetime(año, mes, 1)
+        """Obtiene registros de jornada por mes"""
+        inicio = datetime(año, mes, 1).date()
         fin = (inicio + timedelta(days=31)).replace(day=1)
 
         with db.conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT id, empleado_id, tipo, fecha_hora 
-                FROM registros_horario
-                WHERE empleado_id = %s 
-                AND fecha_hora >= %s 
-                AND fecha_hora < %s
-                ORDER BY fecha_hora
+                SELECT id_registro_jornada, id_empleado, fecha, hora_entrada, hora_salida, estado_jornada, horas_trabajadas, observaciones
+                FROM registro_jornada
+                WHERE id_empleado = %s 
+                AND fecha >= %s 
+                AND fecha < %s
+                ORDER BY fecha
                 """,
-                (str(empleado_id), inicio, fin)
+                (empleado_id, inicio, fin)
             )
-            return [RegistroHorario(*row) for row in cur.fetchall()]
+            return cur.fetchall()  # o procesar con alguna clase si tenés una como RegistroJornada
 
     @staticmethod
     def calcular_horas_mensuales(empleado_id, año, mes):
