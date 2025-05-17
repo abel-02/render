@@ -478,7 +478,7 @@ class RegistroHorario:
         with db.conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT id_registro_jornada, id_empleado, fecha, hora_entrada, hora_salida, estado_jornada, horas_trabajadas, observaciones
+                SELECT id_registro_jornada, id_empleado, dia, hora_entrada, hora_salida, estado_jornada, horas_trabajadas, observaciones
                 FROM registro_jornada
                 WHERE id_empleado = %s 
                 AND fecha >= %s 
@@ -488,6 +488,21 @@ class RegistroHorario:
                 (empleado_id, inicio, fin)
             )
             return cur.fetchall()  # o procesar con alguna clase si tenés una como RegistroJornada
+
+    @staticmethod
+    def obtener_todos_los_registros(empleado_id):
+        """Obtiene todos los registros de jornada de un empleado"""
+        with db.conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT id_registro_jornada, id_empleado, dia, hora_entrada, hora_salida, estado_jornada, horas_trabajadas, observaciones
+                FROM registro_jornada
+                WHERE id_empleado = %s
+                ORDER BY fecha
+                """,
+                (empleado_id,)
+            )
+            return cur.fetchall()  # Devuelve todos los registros del empleado
 
     @staticmethod
     def calcular_horas_mensuales(empleado_id, año, mes):

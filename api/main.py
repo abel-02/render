@@ -123,6 +123,12 @@ def obtener_registros(
         registros = RegistroHorario.obtener_todos(empleado_id)
     return [r for r in registros]
 
+@app.get("/registroscompleto/{empleado_id}")
+def obtener_registros(empleado_id: str):
+
+    registros = RegistroHorario.obtener_todos_los_registros(empleado_id)
+    return [r for r in registros]
+
 # Creo que está bien, tengo que verificarlo con un registro de la base de datos
 @app.get("/horas/{empleado_id}")
 def calcular_horas(empleado_id: str, año: int, mes: int):
