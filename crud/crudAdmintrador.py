@@ -2,6 +2,9 @@ from datetime import datetime, date, time
 import psycopg2
 from psycopg2 import sql
 from .database import db
+from api.schemas import EmpleadoResponse
+from typing import Tuple, List
+from typing import Optional
 
 
 class AdminCRUD:
@@ -223,3 +226,85 @@ class AdminCRUD:
                     "telefono": result[5]
                 }
             return None
+
+    @staticmethod
+    def buscar_avanzado(
+            # Filtra por nombre o apellido los empleados que coincidan. Tambien se puede usar DNI.
+            nombre: Optional[str] = None,
+            apellido: Optional[str] = None,
+            dni: Optional[str] = None,
+            pagina: int = 1,
+            por_pagina: int = 10
+    ) -> Tuple[List[EmpleadoResponse], int]:
+        """Versión con paginación"""
+        # Query principal
+        base_query = """
+                  SELECT id_empleado, nombre, apellido, tipo_identificacion, numero_identificacion, 
+                      fecha_nacimiento, correo_electronico, telefono, calle, numero_calle, 
+                      localidad, partido, provincia, genero, pais_nacimiento, estado_civil
+                  FROM empleado
+                  WHERE 1=1
+              """
+
+        # Query para contar el total  ( número total de registros que coinciden con los filtros de búsqueda)
+        count_query = "SELECT COUNT(*) FROM empleado WHERE 1=1"
+
+        params = []
+
+        # Filtros
+        # Insensitive: no distingue mayúsculas/minúsculas
+        filters = []
+        if nombre:
+            filters.append("nombre ILIKE %s")
+            params.append(f"%{nombre}%")
+
+        if apellido:
+            filters.append("apellido ILIKE %s")
+            params.append(f"%{apellido}%")
+
+        if dni:
+            filters.append("numero_identificacion LIKE %s")
+            params.append(f"%{dni}%")
+
+        if filters:
+            where_clause = " AND " + " AND ".join(filters)
+            base_query += where_clause
+            count_query += where_clause
+
+        # Paginación: subconjunto de empleados a mostrar por página
+        base_query += " LIMIT %s OFFSET %s"
+        params.extend([por_pagina, (pagina - 1) * por_pagina])
+
+        with db.conn.cursor() as cur:
+            # Obtener resultados
+            cur.execute(base_query, tuple(params))
+            results = cur.fetchall()
+
+            # Obtener conteo total
+            cur.execute(count_query, tuple(params[:-2]))  # Excluye LIMIT/OFFSET
+            total = cur.fetchone()[0]
+
+            # Cada fila de la base de datos (result) se convierte en un objeto Empleado, psycopg2 devuelve filas como tuplas
+            empleados = [
+                EmpleadoResponse(
+                    id_empleado=row[0],
+                    nombre=row[1],
+                    apellido=row[2],
+                    tipo_identificacion=row[3],
+                    numero_identificacion=row[4],
+                    fecha_nacimiento=row[5],
+                    correo_electronico=row[6],
+                    telefono=row[7],
+                    calle=row[8],
+                    numero_calle=row[9],
+                    localidad=row[10],
+                    partido=row[11],
+                    provincia=row[12],
+                    genero=row[13],
+                    pais_nacimiento=row[14],
+                    estado_civil=row[15]
+                )
+                for row in results
+            ]
+
+        return empleados, total

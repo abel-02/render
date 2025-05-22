@@ -13,7 +13,8 @@ from crud.crudAdmintrador import AdminCRUD
 from crud.crudEmpleado import RegistroHorario
 from crud.crudEmpleado import Empleado
 from pydantic import BaseModel
-from typing import List
+from typing import Tuple, List
+from schemas import EmpleadoBase, EmpleadoResponse, EmpleadoUpdate
 
 
 # Dato biometrico, lo voy a usar para probar el endpoint regitrar horario
@@ -35,32 +36,6 @@ def obtenerDatoBiometrico():
     return vector_neutro
 
 
-class Empleado(BaseModel):
-    nombre: str
-    apellido: str
-    tipo_identificacion: str
-    numero_identificacion: str
-    fecha_nacimiento: str
-    correo_electronico: str
-    telefono: str
-    calle: str
-    numero_calle: int
-    localidad: str
-    partido: str
-    provincia: str
-    genero: str
-    pais_nacimiento: str
-    estado_civil: str
-
-class EmpleadoUpdate(BaseModel):
-    telefono: Optional[str] = None
-    correo_electronico: Optional[str] = None
-    calle: Optional[str] = None
-    numero_calle: Optional[str] = None
-    localidad: Optional[str] = None
-    partido: Optional[str] = None  # Nueva variable agregada
-    provincia: Optional[str] = None
-
 class AsistenciaManual(BaseModel):
     id_empleado: int
     tipo: str
@@ -70,8 +45,8 @@ class AsistenciaManual(BaseModel):
 
 app = FastAPI()
 
-@app.post("/empleados/")
-def crear_empleado(empleado: Empleado):
+@app.post("/empleados/", response_model=EmpleadoResponse)
+def crear_empleado(empleado: EmpleadoBase):
     try:
         empleado = AdminCRUD.crear_empleado(empleado)
         return {
@@ -140,7 +115,7 @@ def calcular_horas(empleado_id: str, año: int, mes: int):
 def actualizar_datos_empleado(
     empleado_id: int,
     datos: EmpleadoUpdate,
-    # Agrega autenticación para que solo el empleado o admin pueda actualizar
+    # Agregar autenticación para que solo el empleado o admin pueda actualizar
 ):
     try:
         empleado_actualizado = Empleado.actualizar_datos_personales(
@@ -188,15 +163,12 @@ def listar_empleados():
         raise HTTPException(status_code=400, detail=str(e))
 
 # Búsqueda avanzada de empleados
-@app.get("/empleados/buscar/", response_model=List[dict])
+@app.get("/empleados/buscar/", response_model=Tuple[List[EmpleadoResponse], int])  # <- Cambiado a Tuple
 def buscar_empleados(
     nombre: Optional[str] = None,
     apellido: Optional[str] = None,
-    dni: Optional[str] = None
+    dni: Optional[str] = None,
+    pagina: int = 1,
+    por_pagina: int = 10
 ):
-    empleados = Empleado.buscar_avanzado(
-        nombre=nombre,
-        apellido=apellido,
-        dni=dni
-    )
-    return [e for e in empleados]
+    return AdminCRUD.buscar_avanzado(nombre, apellido, dni, pagina, por_pagina)
