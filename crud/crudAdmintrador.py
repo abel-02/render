@@ -309,3 +309,39 @@ class AdminCRUD:
             ]
 
         return empleados, total
+
+    @staticmethod
+    def buscar_informacion_laboral(id_empleado: int):
+        """
+        Busca la información laboral de un empleado por su ID.
+
+        Args:
+            id_empleado: ID del empleado a buscar
+
+        Returns:
+            Tupla con los campos: (departamento, puesto, turno, horario_entrada,
+            horario_salida, fecha_ingreso, tipo_contrato) o None si no se encuentra.
+        """
+        try:
+            with db.conn.cursor() as cur:
+                query = """
+                    SELECT 
+                        d.nombre,
+                        il.puesto,
+                        il.turno,
+                        il.hora_inicio_turno,
+                        il.hora_fin_turno,
+                        il.fecha_ingreso,
+                        il.tipo_contrato
+                    FROM informacion_laboral il
+                    JOIN departamento d ON il.id_departamento = d.id_departamento
+                    WHERE il.id_empleado = %s
+                    ORDER BY il.fecha_ingreso DESC
+                    LIMIT 1
+                """
+                cur.execute(query, (id_empleado,))
+                return cur.fetchone()  # Retorna directamente la tupla de resultados
+
+        except Exception as e:
+            print(f"Error al buscar información laboral: {str(e)}")
+            raise ValueError(f"No se pudo obtener la información laboral: {str(e)}")

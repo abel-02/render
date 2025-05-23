@@ -172,3 +172,21 @@ def buscar_empleados(
     por_pagina: int = 10
 ):
     return AdminCRUD.buscar_avanzado(nombre, apellido, dni, pagina, por_pagina)
+
+@app.get("/empleados/{empleado_id}/informacion-laboral")
+def obtener_informacion_laboral(empleado_id: int):
+    try:
+        info = AdminCRUD.buscar_informacion_laboral_por_id_empleado(empleado_id)
+        if info:
+            return {
+                "departamento": info[0],
+                "puesto": info[1],
+                "turno": info[2],
+                "horario_entrada": str(info[3]),
+                "horario_salida": str(info[4]),
+                "fecha_ingreso": info[5].strftime('%Y-%m-%d'),
+                "tipo_contrato": info[6]
+            }
+        raise HTTPException(status_code=404, detail="No encontrado")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
